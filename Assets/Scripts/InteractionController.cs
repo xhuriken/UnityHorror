@@ -16,6 +16,43 @@ public class InteractionController : MonoBehaviour
     IInteractable currentTargetedInteractable;
     GameObject lastOutlinedGO;   // last highlighted
     Outline lastOutline;       // cached component
+    PlayerInput playerInput;
+
+    public void Awake()
+    {
+        playerInput = GetComponent<PlayerInput>();
+    }
+    void OnEnable()
+    {
+        playerInput.onActionTriggered += OnActionTriggered;
+        playerInput.onControlsChanged += OnControlsChanged;
+    }
+
+    void OnDisable()
+    {
+        playerInput.onActionTriggered -= OnActionTriggered;
+        playerInput.onControlsChanged -= OnControlsChanged;
+    }
+
+    void OnActionTriggered(InputAction.CallbackContext ctx)
+    {
+        switch (ctx.action.name)
+        {
+            case "Interact":
+                if (ctx.performed)
+                {
+                    Debug.Log("[INTERACT] pressed");
+                    if (currentTargetedInteractable != null)
+                        currentTargetedInteractable.Interact();
+                }
+                break;
+        }
+    }
+
+    void OnControlsChanged(PlayerInput input)
+    {
+        //usingPad = input.currentControlScheme != null && input.currentControlScheme.Contains("Gamepad");
+    }
 
     public void Update()
     {
@@ -23,7 +60,7 @@ public class InteractionController : MonoBehaviour
 
         UpdateInteractionText();
 
-        CheckForInteractionInput();
+        //CheckForInteractionInput();
     }
 
 
@@ -81,11 +118,11 @@ public class InteractionController : MonoBehaviour
     }
 
 
-    private void CheckForInteractionInput()
-    {
-        if(Keyboard.current.fKey.wasPressedThisFrame && currentTargetedInteractable != null)
-        {
-            currentTargetedInteractable.Interact();
-        }
-    }
+    //private void CheckForInteractionInput()
+    //{
+    //    if(Keyboard.current.fKey.wasPressedThisFrame && currentTargetedInteractable != null)
+    //    {
+    //        currentTargetedInteractable.Interact();
+    //    }
+    //}
 }

@@ -13,7 +13,8 @@ public class Movement : MonoBehaviour
     [Header("Look")]
     [SerializeField, Range(0f, 0.5f)] float mouseSmoothTime = 0.03f;
     [SerializeField] bool cursorLock = true;
-    [SerializeField] float mouseSensitivity = 1f;
+    [SerializeField] float mouseSensitivity = 1f;     // souris: "par pixel" (ou par unité)
+    [SerializeField] float gamepadSensitivity = 220f; // manette: degrés PAR SECONDE
 
     [Header("Move")]
     [SerializeField] float moveSpeed = 3f;
@@ -63,6 +64,7 @@ public class Movement : MonoBehaviour
     // look
     float camPitch;
     Vector2 lookInput, lookSmooth, lookVel;
+
     bool usingPad;
 
     // move
@@ -123,6 +125,7 @@ public class Movement : MonoBehaviour
 
             case "Look":
                 lookInput = ctx.ReadValue<Vector2>();
+                usingPad = ctx.control.device is Gamepad;
                 break;
 
             case "Jump":
@@ -169,9 +172,18 @@ public class Movement : MonoBehaviour
     void Update()
     {
         // look
-        lookSmooth = Vector2.SmoothDamp(lookSmooth, lookInput, ref lookVel, mouseSmoothTime);
-        transform.Rotate(Vector3.up * (lookSmooth.x * mouseSensitivity));
-        camPitch = Mathf.Clamp(camPitch - (lookSmooth.y * mouseSensitivity), -90f, 90f);
+        Vector2 lookFrame = usingPad
+            // stick: taux -> deg/s -> deg/frame
+            ? lookInput * (gamepadSensitivity * Time.unscaledDeltaTime)
+            // souris: déjà delta/frame -> applique juste la sensi
+            : lookInput * mouseSensitivity;
+
+        // lissage temporel
+        lookSmooth = Vector2.SmoothDamp(lookSmooth, lookFrame, ref lookVel, mouseSmoothTime);
+
+        // applique
+        transform.Rotate(Vector3.up, lookSmooth.x, Space.World);
+        camPitch = Mathf.Clamp(camPitch - lookSmooth.y, -90f, 90f);
         playerCamera.localEulerAngles = Vector3.right * camPitch;
 
         // jump
