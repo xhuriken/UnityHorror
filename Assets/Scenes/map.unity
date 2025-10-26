@@ -22504,6 +22504,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2256894298226579180, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2256894298226579180, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2256894298226579180, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2256894298226579180, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.8000934
       objectReference: {fileID: 0}
@@ -22548,8 +22560,20 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8424278471516808701, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
+      propertyPath: RFNoise
+      value: 0.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424278471516808701, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
       propertyPath: VideoMode
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424278471516808701, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
+      propertyPath: AspectRatio
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424278471516808701, guid: 85043b75d658bc2459b83e28ff26b801, type: 3}
+      propertyPath: EnableRollingFlicker
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
