@@ -18,7 +18,7 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 0.44
+    value: 1.65
   threshold:
     overrideState: 1
     value: 1
@@ -1402,7 +1402,7 @@ MonoBehaviour:
     value: 480
   ColorDepth:
     overrideState: 1
-    value: 0.04
+    value: 0.02
   DitherPattern:
     overrideState: 1
     value: {fileID: 2800000, guid: 33e4517dca3a2274ba1532dd85e3c541, type: 3}
@@ -1412,10 +1412,10 @@ MonoBehaviour:
     value: 1
   DitherThreshold:
     overrideState: 1
-    value: 0.3
+    value: 0.25
   DitherIntensity:
     overrideState: 1
-    value: 0.2
+    value: 0.39
 --- !u!114 &8004454178796725420
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1443,7 +1443,7 @@ MonoBehaviour:
     value: {x: 0.5, y: 0.5}
   intensity:
     overrideState: 1
-    value: 0.348
+    value: 0.42
   smoothness:
     overrideState: 1
     value: 0.2
