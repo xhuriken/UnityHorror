@@ -40,25 +40,21 @@ public class InteractionController : MonoBehaviour
             hitGO = hit.collider.gameObject;
             hit.collider.TryGetComponent(out it);
 
-            // can't interact?
-            if (hit.collider.TryGetComponent(out it))
+            if (it != null && it.cantInteract)
             {
-                if (it.cantInteract)
-                {
-                    return;
-                    //Debug.Log("Cant interact with " + hitGO.name);
-                }
+                if (lastOutline) lastOutline.enabled = false;
+                lastOutlinedGO = null;
+                lastOutline = null;
+                currentTargetedInteractable = null;
+                return;
             }
         }
 
-
-        // swap highlight if target changed
+        // swap highlight si changement
         if (hitGO != lastOutlinedGO)
         {
-            // turn off old
             if (lastOutline) lastOutline.enabled = false;
 
-            // set new
             lastOutlinedGO = hitGO;
             lastOutline = null;
             if (lastOutlinedGO && lastOutlinedGO.TryGetComponent(out Outline o))

@@ -662,7 +662,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 8117764339279559311}
   interactionText: {fileID: 7354469581741807663}
-  interactionDistance: 5
+  interactionDistance: 2
 --- !u!1 &3998516583875813287
 GameObject:
   m_ObjectHideFlags: 0

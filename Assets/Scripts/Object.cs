@@ -1,63 +1,56 @@
 using DG.Tweening;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Door : MonoBehaviour, IInteractable
 {
     public string InteractMessage => objectInteractMessage;
-
     public bool cantInteract => _cantInteract;
 
-    [SerializeField]
-    string objectInteractMessage;
+    [SerializeField] string objectInteractMessage;
+    [SerializeField] bool _cantInteract = false;
 
     public bool isOpen = false;
 
-    [SerializeField]
-    bool _cantInteract = false;
+    Tween _tween;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        GetComponent<Outline>().enabled = false;   
-    }
+    Quaternion _closedRot;
+    Quaternion _openRot;
 
     void Awake()
     {
         _cantInteract = false;
     }
 
-    // Update is called once per frame
-    void Update()
+    void Start()
     {
-        
+        GetComponent<Outline>().enabled = false;
+
+        _closedRot = transform.parent.rotation;
+        _openRot = _closedRot * Quaternion.Euler(0f, 90f, 0f); // +90°
     }
 
     public void Interact()
     {
+        if (_cantInteract) return;
+
         _cantInteract = true;
-        if (!isOpen)
-        {
-            transform.GetComponent<BoxCollider>().isTrigger = true;
-            transform.parent.DORotate(new Vector3(0, 90, 0), 0.4f, RotateMode.WorldAxisAdd).SetEase(Ease.InOutElastic).OnComplete(() =>
+        var col = transform.GetComponent<BoxCollider>();
+        col.isTrigger = true;
+
+        if (_tween != null && _tween.IsActive()) _tween.Kill();
+
+        var target = isOpen ? _closedRot : _openRot;
+
+        _tween = transform.parent
+            .DORotateQuaternion(target, 0.4f)
+            .SetEase(Ease.InOutElastic) 
+            .OnComplete(() =>
             {
-                _cantInteract = false;
                 isOpen = !isOpen;
-
-            });
-        }
-        else
-        {
-            transform.parent.DORotate(new Vector3(0, -90, 0), 0.4f, RotateMode.WorldAxisAdd).SetEase(Ease.InOutElastic).OnComplete(() =>
-            {
-                transform.GetComponent<BoxCollider>().isTrigger = false;
+                col.isTrigger = false;
                 _cantInteract = false;
-                isOpen = !isOpen;
-
             });
-        }
 
-        //TODO PLAY SFX !!
+        // TODO: PLAY SFX
     }
 }
