@@ -50,10 +50,24 @@ public class Movement : MonoBehaviour
     static readonly int ID_MaxStam = Animator.StringToHash("maxStam");     // trigger
     static readonly int ID_ExitMaxStam = Animator.StringToHash("exitMaxStam"); // trigger
 
+    [Header("SoundFX")]
+    [SerializeField] AudioClip[] footSteps;
+    [SerializeField] AudioClip   outOfBreathe, jump;
+    private AudioSource _audioSource;
+
+    [Header("Footsteps")]
+    [SerializeField] float stepIntervalWalk = 0.50f;
+    [SerializeField] float stepIntervalSprint = 0.33f;
+    [SerializeField] float minHorizSpeedForStep = 0.15f; // movement threshold
+    [SerializeField, Range(0f, 1f)] float stepVolume = 0.9f;
+    [SerializeField] Vector2 stepPitchRange = new Vector2(0.95f, 1.05f);
+
+
     bool wasFull;   // edge for maxStam
     bool wasReady;  // edge for exitMaxStam
 
-
+    int _lastStepIndex = -1;
+    float _stepTimer = 0f;
 
     // state
     Rigidbody rb;
@@ -83,6 +97,7 @@ public class Movement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         playerInput = GetComponent<PlayerInput>();
+        _audioSource = GetComponent<AudioSource>();
         rb.freezeRotation = true;
         stamina = staminaMax;
 
@@ -191,6 +206,9 @@ public class Movement : MonoBehaviour
         {
             float vy = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             var v = rb.velocity; v.y = vy; rb.velocity = v;
+
+            //SFX
+            PlayOneShotVar(jump, 0.4f, stepPitchRange);
         }
         jumpPressed = false;
     }
@@ -213,6 +231,64 @@ public class Movement : MonoBehaviour
             camAnimator.SetBool(ID_IsWalking, !isSprinting && moving);
         }
 
+        // footsteps
+        // only when grounded + moving above a small threshold
+        float horizSpeed = new Vector2(rb.velocity.x, rb.velocity.z).magnitude;
+        bool shouldStep = grounded && horizSpeed >= minHorizSpeedForStep;
+
+        // Sprint  intervalle court
+        // Slow    intervalle de marche * (1 / sprintSlowMultiplier)  -> plus long
+        // Marche  intervalle normal
+        float currentInterval;
+        if (isSprinting)
+        {
+            currentInterval = stepIntervalSprint;
+        }
+        else if (mustRelease) //Slow
+        {
+            // sprintSlowMultiplier < 1, donc on DIVISE pour AGRANDIR l'intervalle
+            currentInterval = stepIntervalWalk / Mathf.Max(0.0001f, sprintSlowMultiplier);
+        }
+        else
+        {
+            currentInterval = stepIntervalWalk;
+        }
+
+        // Gestion du timer
+        if (!shouldStep)
+        {
+            // reset doux pour éviter un "step" instantané à la reprise
+            _stepTimer = Mathf.Min(_stepTimer, currentInterval * 0.5f);
+        }
+        else
+        {
+            _stepTimer -= Time.fixedDeltaTime;
+            if (_stepTimer <= 0f)
+            {
+                var clip = GetRandomFootstep();
+                if (clip != null)
+                {
+                    // Ajuster le pitch selon l'état (subtil)
+                    // sprint  : un peu plus aigu
+                    // slow    : un peu plus grave
+                    // marche  : neutre
+                    float centerMul =
+                        isSprinting ? 1.04f :
+                        (mustRelease ? 0.96f : 1.00f);
+
+                    var ranged = ScalePitchRange(stepPitchRange, centerMul);
+
+                    // Optionnel: volume un poil plus faible en slow
+                    float vol = mustRelease ? stepVolume * 0.9f : stepVolume;
+
+                    PlayOneShotVar(clip, vol, ranged);
+                }
+
+                _stepTimer = currentInterval;
+            }
+        }
+
+
         // keep previous stamina for edges
         float prevStamina = stamina;
 
@@ -229,7 +305,10 @@ public class Movement : MonoBehaviour
                 if (prevStamina > 0f)
                     camAnimator?.SetTrigger(ID_MaxStam);
 
-                Debug.Log("[SPRINT] stop (empty, blocked) -> maxStam trigger");
+                //SFX
+                PlayOneShotVar(outOfBreathe, 0.4f, new Vector2(0.95f, 1.0f));
+
+                //Debug.Log("[SPRINT] stop (empty, blocked) -> maxStam trigger");
             }
         }
         else
@@ -244,7 +323,7 @@ public class Movement : MonoBehaviour
         {
             mustRelease = false; // unlock
             camAnimator?.SetTrigger(ID_ExitMaxStam);
-            Debug.Log($"[SPRINT] ready TRIGGER (>= {sprintRestartPercent * 100f:0}%)");
+            //Debug.Log($"[SPRINT] ready TRIGGER (>= {sprintRestartPercent * 100f:0}%)");
         }
 
         // post fx
@@ -271,16 +350,43 @@ public class Movement : MonoBehaviour
         }
     }
 
-
-
-
-
     public float Stamina01 => staminaMax > 0f ? Mathf.Clamp01(stamina / staminaMax) : 0f;
 
-    void OnDrawGizmosSelected()
+    #region Audio Helpers
+
+    Vector2 ScalePitchRange(Vector2 range, float centerMul)
     {
-        if (!groundCheck) return;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(groundCheck.position, groundRadius);
+        return new Vector2(range.x * centerMul, range.y * centerMul);
     }
+
+    void PlayOneShotVar(AudioClip clip, float volume = 1f, Vector2? pitchRange = null)
+    {
+        if (_audioSource == null || clip == null) return;
+        float oldPitch = _audioSource.pitch;
+        if (pitchRange.HasValue)
+        {
+            var r = pitchRange.Value;
+            _audioSource.pitch = Random.Range(r.x, r.y);
+        }
+        _audioSource.PlayOneShot(clip, volume);
+        _audioSource.pitch = oldPitch;
+    }
+
+    AudioClip GetRandomFootstep()
+    {
+        if (footSteps == null || footSteps.Length == 0) return null;
+        if (footSteps.Length == 1) return footSteps[0];
+
+        int idx;
+        do idx = Random.Range(0, footSteps.Length);
+        while (idx == _lastStepIndex);
+
+        _lastStepIndex = idx;
+        return footSteps[idx];
+    }
+
+
+
+    #endregion //Audio Helpers
+
 }
