@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 
 public class BallSpawner : MonoBehaviour
@@ -47,7 +47,7 @@ public class BallSpawner : MonoBehaviour
             SpawnSingleBall();
 
             if (i % batchSize == 0)
-                yield return null; // attend 1 frame toutes les "batchSize" boules
+                yield return null; 
         }
     }
 
@@ -60,19 +60,22 @@ public class BallSpawner : MonoBehaviour
         );
 
         GameObject ball = Instantiate(ballPrefab, pos, Random.rotation);
+        ball.tag = "Ball";
 
-        // Choisir une couleur aléatoire dans la liste
-        Color randomColor = baseColors[Random.Range(0, baseColors.Length)];
-
-        // Appliquer la couleur sur le matériau (instancier un nouveau pour éviter de changer tous les prefabs)
+ 
         Renderer rend = ball.GetComponent<Renderer>();
         if (rend != null)
         {
-            Material mat = new Material(rend.sharedMaterial);
-            mat.color = randomColor;
-            rend.material = mat;
+            Color randomColor = baseColors[Random.Range(0, baseColors.Length)];
+
+            var mpb = new MaterialPropertyBlock();
+            mpb.SetColor("_Color", randomColor);
+            rend.SetPropertyBlock(mpb);
         }
+
+       
     }
+
 
     void OnDrawGizmosSelected()
     {
